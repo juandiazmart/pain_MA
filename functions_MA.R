@@ -79,8 +79,8 @@ getestimates <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
       yrange <- c(-7 - nrow(effsize), 1)
       forest.default(effsize$yi, vi = effsize$vi, refline = 0,
                      rows = seq(-2, -length(effsize$yi) - 1, by = -1),width=0,
-                     alim = c(-5, 5),
-                     xlim = c(-10,10),
+                     alim = c(-10, 10),
+                     xlim = c(-20,20),
                      ylim = yrange, top=2, steps=5, level=95,
                      xlab="Mean difference", slab = effsize[,"study"],efac=1, pch=15,cex=1.5,cex.lab=1.5,
                      digits=2)

@@ -83,3 +83,10 @@ write.estimates.csv(list.estimates, folder,name)
 #############
 #############
 
+#contrast_df=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = studlab, data = df, sm = "MD")
+contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = "MD")
+network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
+netgraph(network)
+split=netsplit(network)
+random=split$random[,c(1,2,4,5)]
+indirect=direct=split$indirect.random[,c(1,2,4,5)]
