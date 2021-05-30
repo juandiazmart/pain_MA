@@ -100,7 +100,7 @@ getestimates <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
                          sep = "")
       
       title(titlename, line=0)
-      
+      print(titlename)
       colvec <- c("green","blue","red","yellow")
       par(mar=c(4,0.5,2,0.5))
       
