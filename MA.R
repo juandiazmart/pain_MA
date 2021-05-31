@@ -73,13 +73,24 @@ baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>%
 
 measure <- "MD"
 name <- "TOTPAR.csv"
+name.grade <- "grade.csv"
 folder <- "TOTPAR"
+type.filter <- "Frequentist.random.DL"
 
+list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+#list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
-list.estimates <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
 
-write.estimates.csv(list.estimates, folder,name,"Frequentist.random.DL")
+get.grade.csv(pairwise, measure, folder, name.grade)
 
 #############
 #############
 
+#contrast_df=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = studlab, data = df, sm = "MD")
+contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = "MD")
+network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
+netgraph(network)
+split=netsplit(network)
+random=split$random[,c(1,2,4,5)]
+indirect=direct=split$indirect.random[,c(1,2,4,5)]
