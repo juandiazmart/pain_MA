@@ -7,7 +7,7 @@ library(magrittr)
 library(netmeta)
 
 
-getestimates <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
+getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
   
   data=as.data.frame(data) # tibble doesnt work for subsetting
   #get 1 subdataframes with the treatment columns
@@ -134,10 +134,7 @@ getestimates <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
       rma.random.DL <- rma.uni(effsize, method="DL")
       
       #concat of the summarys, called estimates, same scheize, calculate and append
-      estimates <- rbind("HNorm(0.5)" = c(bm.hnorm05$summary[2,1:2], bm.hnorm05$summary[5:6,2]),
-                         "HNorm(1.0)" = c(bm.hnorm10$summary[2,1:2], bm.hnorm10$summary[5:6,2]),
-                         "Turner Prior"=c(bm.Turner$summary[2,1:2], bm.Turner$summary[5:6,2]),
-                         "Frequentist.fixed" = c(sqrt(rma.fixed$tau2.fix), rma.fixed$b, rma.fixed$ci.lb, rma.fixed$ci.ub),
+      estimates <- rbind("Frequentist.fixed" = c(sqrt(rma.fixed$tau2.fix), rma.fixed$b, rma.fixed$ci.lb, rma.fixed$ci.ub),
                          "Frequentist.random.DL" = c(sqrt(rma.random.DL$tau2), rma.random.DL$b, rma.random.DL$ci.lb, rma.random.DL$ci.ub))
       
       if (measure == "OR") {
@@ -205,13 +202,13 @@ getestimates <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
   return(list.estimates)
 }
 
-write.estimates.csv <- function(list.estimates ,folder,name) {
+write.estimates.csv <- function(list.estimates ,folder,name, filter.type="Turner Prior") {
   
   rows.estimates <- tibble()
   for (i in 1:length(list.estimates)) {
     est <- as.data.frame(list.estimates[i][1])
     rows.estimates <- bind_rows(rows.estimates, est)
   }
-  rows.estimates %>% filter(type=="Turner Prior") %>% 
+  rows.estimates %>% filter(type==filter.type) %>% 
     write_csv(paste0(folder,"/output/", name))
 }

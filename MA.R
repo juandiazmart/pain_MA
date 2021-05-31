@@ -76,9 +76,9 @@ name <- "TOTPAR.csv"
 folder <- "TOTPAR"
 
 
-list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
 
-write.estimates.csv(list.estimates, folder,name)
+write.estimates.csv(list.estimates, folder,name,"Frequentist.random.DL")
 
 #############
 #############
