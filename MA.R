@@ -73,12 +73,16 @@ baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>%
 
 measure <- "MD"
 name <- "TOTPAR.csv"
+name.grade <- "grade.csv"
 folder <- "TOTPAR"
+type.filter <- "Frequentist.random.DL"
 
+list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+#list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
-list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
+write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
 
-write.estimates.csv(list.estimates, folder,name)
+get.grade.csv(pairwise, measure, folder, name.grade)
 
 #############
 #############
