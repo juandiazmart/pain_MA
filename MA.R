@@ -35,6 +35,14 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
 #          ) %>%
 #   select(study, t1, t2 = t2aux, n1, mean1, sd1, n2 = n2aux, mean2 = mean2aux, sd2 = sd2aux)
 
+swap.lower.upper <- function(df, mean, lower, upper){
+  df = df %>%
+    mutate(mean = (-1)*mean,
+       lower_aux = (-1)*upper, 
+       upper = (-1)*lower) %>%
+  select(t1, t2, mean, lower = lower_aux, upper)
+}
+
 for (i in 1:nrow(pairwise)){
   if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
     auxt = pairwise[i,"t2"]
@@ -56,7 +64,6 @@ for (i in 1:nrow(pairwise)){
     auxsd = pairwise[i,"sd2"]
     pairwise[i,"sd2"] = pairwise[i,"sd1"]
     pairwise[i,"sd1"] = auxsd
-    
   }
 }
 
@@ -80,17 +87,11 @@ type.filter <- "Frequentist.random.DL"
 list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
-write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
+grade <- write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
 
-get.grade.csv(pairwise, measure, folder, name.grade)
+get.network.pdf(pairwise, measure, folder, name)
+
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade)
 
 #############
 #############
-
-#contrast_df=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = studlab, data = df, sm = "MD")
-contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = "MD")
-network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
-netgraph(network)
-split=netsplit(network)
-random=split$random[,c(1,2,4,5)]
-indirect=direct=split$indirect.random[,c(1,2,4,5)]
