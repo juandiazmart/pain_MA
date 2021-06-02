@@ -404,6 +404,25 @@ getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,f
   return(list.estimates)
 }
 
+swap.lower.upper <- function(df, t1, t2, mean, lower, upper){
+  dfout = df %>% rename("t1"="t2", "t2"="t1") %>%
+    mutate(mean = (-1)*mean,
+           lower_aux = (-1)*upper, 
+           upper = (-1)*lower) %>%
+    select(t1, t2, mean, lower = lower_aux, upper)
+  return(dfout)
+}
+# absolute.RD.inv = absolute.RD %>% rename("t1"="t2", "t2"="t1") %>%
+#   mutate(logrelative_nma = (-1)*logrelative_nma,
+#          logrelative_nma_lower_aux = (-1)*logrelative_nma_upper, 
+#          logrelative_nma_upper = (-1)*logrelative_nma_lower, 
+#          absolute_nma = (-1)*absolute_nma, 
+#          absolute_nma_lower_aux = (-1)*absolute_nma_upper, 
+#          absolute_nma_upper = (-1)*absolute_nma_lower) %>%
+#   select(t1, t2, logrelative_nma, logrelative_nma_lower = logrelative_nma_lower_aux, logrelative_nma_upper, 
+#          absolute_nma, absolute_nma_lower = absolute_nma_lower_aux, absolute_nma_upper)
+
+
 get.grade.csv <- function(pairwise, measure, folder, name, grade){
 
   contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
@@ -418,21 +437,38 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade){
   random$t2 <- str_split_fixed(random$comparison, ":", 2)[,2]
   random= random %>% rename(relative_nma = TE, relative_nma_lower = lower, relative_nma_upper = upper) %>%
     select(t1,t2,relative_nma,relative_nma_lower,relative_nma_upper)
+  random.inv = swap.lower.upper(random, random$t1, random$t2, random$relative_nma, 
+                                random$relative_nma_lower, random$relative_nma_upper)
   
   indirect=split$indirect.random[,c(1,2,4,5)]
   indirect$t1 <- str_split_fixed(indirect$comparison, ":", 2)[,1]
   indirect$t2 <- str_split_fixed(indirect$comparison, ":", 2)[,2]
   indirect = indirect %>% rename(relative_indirect = TE, relative_indirect_lower = lower, relative_indirect_upper = upper) %>%
     select(t1,t2,relative_indirect,relative_indirect_lower,relative_indirect_upper)
+  indirect.inv = swap.lower.upper(indirect, indirect$t1, indirect$t2, indirect$relative_indirect, 
+                                  indirect$relative_indirect_lower, indirect$relative_indirect_upper)
   
-  out = left_join(grade, random, by=c("t1"="t1","t2"="t2"))
-  out = left_join(out, indirect, by=c("t1"="t1","t2"="t2"))
+  randindaux = inner_join(random, indirect, by=c("t1"="t1","t2"="t2"))
+  randindaux.inv = inner_join(random.inv, indirect.inv, by=c("t1"="t1","t2"="t2"))
   
-  out %>% write_csv(paste0(folder,"/output/", name))
+  outaux = right_join(grade, randindaux.inv, by=c("t1"="t1","t2"="t2"))
+  outbase = right_join(grade, randindaux, by=c("t1"="t1","t2"="t2"))
+  
+  for (i in 1:nrow(outbase)) {
+    for (j in 1:nrow(outaux)){
+      if (((outbase[i,1]==outaux[j,2]) & (outbase[i,2]==outaux[j,1])) & is.na(outbase[i,3])){
+        for (k in 1:ncol(outbase)){
+          outbase[i,k] = outaux[j,k]
+        }
+      }
+    }
+  }
+  
+  outbase %>% write_csv(paste0(folder,"/output/", name))
     # select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper,relative_nma,relative_nma_lower,
     #              relative_nma_upper,relative_indirect,relative_indirect_lower,relative_indirect_upper) %>%
     # write_csv(paste0(folder,"/output/", name))
-  return(out)
+  return(outbase)
 }
 
 get.network.pdf <- function(pairwise, measure, folder, name){
