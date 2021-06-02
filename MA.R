@@ -1,5 +1,5 @@
-# wd <- "/home/antonio/pain_MA"
-# setwd(wd)
+wd <- "/home/antonio/pain_MA"
+setwd(wd)
 source("functions_MA.R")
 
 #### TOTPAR ####
@@ -12,37 +12,6 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
 
-# pairwise.mutate = pairwise %>%
-#   mutate(n2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), n2, n1),
-#          n1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), n1, n2),
-#          mean2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), mean2, mean1),
-#          mean1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), mean1, mean2),
-#          sd2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), sd2, sd1),
-#          sd1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), sd1, sd2),
-#          t2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutatet$id2)), t2, t1),
-#          t1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), t1, t2)
-#          ) %>%
-#   select(study, t1, t2 = t2aux, n1, mean1, sd1, n2 = n2aux, mean2 = mean2aux, sd2 = sd2aux)
-# 
-# pairwise.placebo = pairwise.mutate %>%
-#   mutate(n2aux = if_else(t1 == "Placebo", n2, n1),
-#          n1 = if_else(t1 == "Placebo", n1, n2),
-#          mean2aux = if_else(t1 == "Placebo", mean2, mean1),
-#          mean1 = if_else(t1 == "Placebo", mean1, mean2),
-#          sd2aux = if_else(t1 == "Placebo", sd2, sd1),
-#          sd1 = if_else(t1 == "Placebo", sd1, sd2),
-#          t2aux = if_else(t1 == "Placebo", t2, t1),
-#          t1 = if_else(t1 == "Placebo", t1, t2)
-#          ) %>%
-#   select(study, t1, t2 = t2aux, n1, mean1, sd1, n2 = n2aux, mean2 = mean2aux, sd2 = sd2aux)
-
-swap.lower.upper <- function(df, mean, lower, upper){
-  df = df %>%
-    mutate(mean = (-1)*mean,
-       lower_aux = (-1)*upper, 
-       upper = (-1)*lower) %>%
-  select(t1, t2, mean, lower = lower_aux, upper)
-}
 
 for (i in 1:nrow(pairwise)){
   if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
@@ -102,30 +71,6 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
-
-# pairwise.mutate = pairwise %>%
-#   mutate(n2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), n2, n1),
-#          n1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), n1, n2),
-#          mean2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), mean2, mean1),
-#          mean1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), mean1, mean2),
-#          sd2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), sd2, sd1),
-#          sd1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), sd1, sd2),
-#          t2aux = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutatet$id2)), t2, t1),
-#          t1 = if_else((as.numeric(pairwise.mutate$tid1) > as.numeric(pairwise.mutate$tid2)), t1, t2)
-#          ) %>%
-#   select(study, t1, t2 = t2aux, n1, mean1, sd1, n2 = n2aux, mean2 = mean2aux, sd2 = sd2aux)
-# 
-# pairwise.placebo = pairwise.mutate %>%
-#   mutate(n2aux = if_else(t1 == "Placebo", n2, n1),
-#          n1 = if_else(t1 == "Placebo", n1, n2),
-#          mean2aux = if_else(t1 == "Placebo", mean2, mean1),
-#          mean1 = if_else(t1 == "Placebo", mean1, mean2),
-#          sd2aux = if_else(t1 == "Placebo", sd2, sd1),
-#          sd1 = if_else(t1 == "Placebo", sd1, sd2),
-#          t2aux = if_else(t1 == "Placebo", t2, t1),
-#          t1 = if_else(t1 == "Placebo", t1, t2)
-#          ) %>%
-#   select(study, t1, t2 = t2aux, n1, mean1, sd1, n2 = n2aux, mean2 = mean2aux, sd2 = sd2aux)
 
 for (i in 1:nrow(pairwise)){
   if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
