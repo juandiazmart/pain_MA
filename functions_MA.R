@@ -404,7 +404,38 @@ getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,f
   return(list.estimates)
 }
 
-get.grade.csv <- function(pairwise, measure, folder, name){
+get.grade.csv <- function(pairwise, measure, folder, name, grade){
+
+  contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
+  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
+  split=netsplit(network)
+  
+  grade=grade %>% rename(relative_direct = mu, relative_direct_lower = mu_l, relative_direct_upper = mu_u) %>%
+    select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper)
+  
+  random=split$random[,c(1,2,4,5)]
+  random$t1 <- str_split_fixed(random$comparison, ":", 2)[,1]
+  random$t2 <- str_split_fixed(random$comparison, ":", 2)[,2]
+  random= random %>% rename(relative_nma = TE, relative_nma_lower = lower, relative_nma_upper = upper) %>%
+    select(t1,t2,relative_nma,relative_nma_lower,relative_nma_upper)
+  
+  indirect=split$indirect.random[,c(1,2,4,5)]
+  indirect$t1 <- str_split_fixed(indirect$comparison, ":", 2)[,1]
+  indirect$t2 <- str_split_fixed(indirect$comparison, ":", 2)[,2]
+  indirect = indirect %>% rename(relative_indirect = TE, relative_indirect_lower = lower, relative_indirect_upper = upper) %>%
+    select(t1,t2,relative_indirect,relative_indirect_lower,relative_indirect_upper)
+  
+  out = left_join(grade, random, by=c("t1"="t1","t2"="t2"))
+  out = left_join(out, indirect, by=c("t1"="t1","t2"="t2"))
+  
+  out %>% write_csv(paste0(folder,"/output/", name))
+    # select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper,relative_nma,relative_nma_lower,
+    #              relative_nma_upper,relative_indirect,relative_indirect_lower,relative_indirect_upper) %>%
+    # write_csv(paste0(folder,"/output/", name))
+  return(out)
+}
+
+get.network.pdf <- function(pairwise, measure, folder, name){
   
   pathname <- paste0(folder,"/output/", gsub(".{4}$", "", name),".pdf")
   pdf(pathname, width = 8, height = 5, pointsize = 6)
@@ -412,15 +443,7 @@ get.grade.csv <- function(pairwise, measure, folder, name){
   contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
   network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
   netgraph(network)
-  split=netsplit(network)
   dev.off()
-  
-  random=split$random[,c(1,2,4,5)]
-  indirect=direct=split$indirect.random[,c(1,2,4,5)]
-  indirect$t1 <- str_split_fixed(random$comparison, ":", 2)[,1]
-  indirect$t2 <- str_split_fixed(random$comparison, ":", 2)[,2]
-  
-  indirect %>% select(t1,t2,TE,lower,upper) %>% write_csv(paste0(folder,"/output/", name))
 }
 
 write.estimates.csv <- function(list.estimates ,folder,name, filter.type="Turner Prior") {
@@ -432,4 +455,5 @@ write.estimates.csv <- function(list.estimates ,folder,name, filter.type="Turner
   }
   rows.estimates %>% filter(type==filter.type) %>% 
     write_csv(paste0(folder,"/output/", name))
+  return(rows.estimates)
 }
