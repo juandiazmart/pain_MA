@@ -205,7 +205,7 @@ library(netmeta)
 #   return(list.estimates)
 # }
 
-getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,folder){
+getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,folder,xlim=c(-20,20),alim=c(-20,20)){
   
   data=as.data.frame(data) # tibble doesnt work for subsetting
   #get 1 subdataframes with the treatment columns
@@ -241,7 +241,7 @@ getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,f
       yrange <- c(-7 - nrow(effsize), 1)
       forest.default(effsize$yi, vi = effsize$vi, refline = 0,
                      rows = seq(-2, -length(effsize$yi) - 1, by = -1),width=0,
-                     alim = c(-2.5, 2.5),
+                     alim = c(-2.5,1),
                      xlim = c(-10,10),
                      ylim = yrange, top=2, steps=5, level=95,
                      xlab="Odds ratio", slab = effsize[,"study"],efac=1, pch=15,cex=1.5,cex.lab=1.5,
@@ -277,8 +277,8 @@ getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,f
       yrange <- c(-7 - nrow(effsize), 1)
       forest.default(effsize$yi, vi = effsize$vi, refline = 0,
                      rows = seq(-2, -length(effsize$yi) - 1, by = -1),width=0,
-                     alim = c(-20, 20),
-                     xlim = c(-20,20),
+                     alim = alim,
+                     xlim = xlim,
                      ylim = yrange, top=2, steps=5, level=95,
                      xlab="Mean difference", slab = effsize[,"study"],efac=1, pch=15,cex=1.5,cex.lab=1.5,
                      digits=2)
@@ -424,13 +424,32 @@ swap.lower.upper <- function(df, t1, t2, mean, lower, upper){
 
 
 get.grade.csv <- function(pairwise, measure, folder, name, grade){
+  
+  if (measure=="MD") {
+    contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
+  } else {
+    contrast_df=pairwise(list(t1,t2), event = list(e.events,c.events), n = list(e.total,c.total),studlab = study, data = pairwise, sm = measure) 
+  }
 
-  contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
   network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
   split=netsplit(network)
   
-  grade=grade %>% rename(relative_direct = mu, relative_direct_lower = mu_l, relative_direct_upper = mu_u) %>%
-    select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper)
+  pathname <- paste0(folder,"/output/", gsub(".{4}$", "", name),"_netsplit",".pdf")
+  pdf(pathname, width = 9, height = 18)
+  
+  forest(split)
+  dev.off()
+  
+  if (measure=="MD") {
+    grade=grade %>% rename(relative_direct = mu, relative_direct_lower = mu_l, relative_direct_upper = mu_u) %>%
+      select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper)
+  } else {
+    grade=grade %>% rename(relative_direct = mu, relative_direct_lower = mu_l, relative_direct_upper = mu_u,
+                           absolute_direct=risk,absolute_direct_lower=risk_l,absolute_direct_upper=risk_u) %>%
+      select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper,
+             absolute_direct,absolute_direct_lower,absolute_direct_upper)
+  }
+  
   
   random=split$random[,c(1,2,4,5)]
   random$t1 <- str_split_fixed(random$comparison, ":", 2)[,1]
@@ -464,7 +483,14 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade){
     }
   }
   
-  outbase %>% write_csv(paste0(folder,"/output/", name))
+  if (measure=="MD") {
+    outbase %>% 
+      write_csv(paste0(folder,"/output/", name))
+  } else {
+    outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper), exp) %>% 
+      write_csv(paste0(folder,"/output/", name))
+  }
+  
     # select(t1,t2,relative_direct,relative_direct_lower,relative_direct_upper,relative_nma,relative_nma_lower,
     #              relative_nma_upper,relative_indirect,relative_indirect_lower,relative_indirect_upper) %>%
     # write_csv(paste0(folder,"/output/", name))
@@ -476,9 +502,14 @@ get.network.pdf <- function(pairwise, measure, folder, name){
   pathname <- paste0(folder,"/output/", gsub(".{4}$", "", name),".pdf")
   pdf(pathname, width = 8, height = 5, pointsize = 6)
   
-  contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
+  if (measure=="MD") {
+    contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
+  } else {
+    contrast_df=pairwise(list(t1,t2), event = list(e.events,c.events), n = list(e.total,c.total),studlab = study, data = pairwise, sm = measure) 
+  }
+  
   network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
-  netgraph(network)
+  netgraph(network,multiarm = F)
   dev.off()
 }
 
