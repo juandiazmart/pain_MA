@@ -422,8 +422,29 @@ swap.lower.upper <- function(df, t1, t2, mean, lower, upper){
 #   select(t1, t2, logrelative_nma, logrelative_nma_lower = logrelative_nma_lower_aux, logrelative_nma_upper, 
 #          absolute_nma, absolute_nma_lower = absolute_nma_lower_aux, absolute_nma_upper)
 
+# get.RD <- function(input, t1,t2, column1, column2, baseline){
+#   # df$t1 <- input$t1
+#   # df$t2 <- input$t2
+#   df = input
+#   df$cr1 <- exp(as.numeric(input$column1) + log(baseline) - log(1 + baseline*(as.numeric(exp(input$column1)) - 1)))
+#   df$cr2 <- exp(as.numeric(input$column2) + log(baseline) - log(1 + baseline*(as.numeric(exp(input$column2)) - 1)))
+#   df$RD <- 1000*(df$cr1 - df$cr2)
+#   df = df %>% select(t1,t2,RD)
+#   return(df)
+# }
 
-get.grade.csv <- function(pairwise, measure, folder, name, grade){
+get.RD2 <-function(t1,t2, column1, column2, baseline){
+  dfout = data.frame(matrix(ncol=5,nrow=length(t1), dimnames=list(NULL, c("t1", "t2", "cr1", "cr2", "RD"))))
+  dfout$t1 <- t1
+  dfout$t2 <- t2
+  dfout$cr1 <- exp(column1 + log(baseline) - log(1 + baseline*(exp(column1) - 1)))
+  dfout$cr2 <- exp(column2 + log(baseline) - log(1 + baseline*(exp(column2) - 1)))
+  dfout$RD <- 1000*(dfout$cr1 - dfout$cr2)
+  dfout = dfout %>% select(t1,t2,RD)
+  return(dfout)
+}
+
+get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0){
   
   if (measure=="MD") {
     contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
@@ -459,6 +480,29 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade){
   random.inv = swap.lower.upper(random, random$t1, random$t2, random$relative_nma, 
                                 random$relative_nma_lower, random$relative_nma_upper)
   
+  if (measure=="OR") {
+    random.RD = random %>% filter(t2 == "Placebo") %>% select(t1,relative_nma,relative_nma_lower,relative_nma_upper)
+    random.RD[nrow(random.RD) + 1,] = list("Placebo",0,0,0)
+
+    cross.RD = full_join(random.RD, random.RD, by = character())
+    
+    cross.RD.abs = get.RD2(cross.RD$t1.x,cross.RD$t1.y, cross.RD$relative_nma.x, cross.RD$relative_nma.y, baseline) %>% 
+      rename(absolute_nma = RD)
+    cross.RD.low = get.RD2(cross.RD$t1.x,cross.RD$t1.y, cross.RD$relative_nma_lower.x, cross.RD$relative_nma_lower.y, baseline) %>% 
+      rename(absolute_nma_lower = RD)
+    cross.RD.upp = get.RD2(cross.RD$t1.x,cross.RD$t1.y, cross.RD$relative_nma_upper.x, cross.RD$relative_nma_upper.y, baseline) %>% 
+      rename(absolute_nma_upper = RD)
+    
+    cross.RDout = left_join(cross.RD, cross.RD.abs, by = c("t1.x" = "t1", "t1.y" = "t2"))
+    cross.RDout = left_join(cross.RDout, cross.RD.low, by = c("t1.x" = "t1", "t1.y" = "t2"))
+    cross.RDout = left_join(cross.RDout, cross.RD.upp, by = c("t1.x" = "t1", "t1.y" = "t2")) %>%
+      rename(t1 = t1.x, t2 = t1.y) %>%
+      select(t1,t2,absolute_nma,absolute_nma_lower,absolute_nma_upper)
+    
+    #random = left_join(random, cross.RDout, by= c("t1" = "t1", "t2" = "t2"))
+  }
+  
+  
   indirect=split$indirect.random[,c(1,2,4,5)]
   indirect$t1 <- str_split_fixed(indirect$comparison, ":", 2)[,1]
   indirect$t2 <- str_split_fixed(indirect$comparison, ":", 2)[,2]
@@ -485,6 +529,12 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade){
   
   if (measure=="MD") {
     outbase %>% 
+      write_csv(paste0(folder,"/output/", name))
+  } else if (measure=="OR") {
+    outbase = left_join(outbase, cross.RDout, by= c("t1" = "t1", "t2" = "t2"))
+    
+    outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper,
+                               -absolute_nma,-absolute_nma_lower,-absolute_nma_upper), exp) %>% 
       write_csv(paste0(folder,"/output/", name))
   } else {
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper), exp) %>% 

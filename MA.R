@@ -1,5 +1,5 @@
-# wd <- "/home/antonio/pain_MA"
-# setwd(wd)
+wd <- "/home/antonio/pain_MA"
+setwd(wd)
 source("functions_MA.R")
 
 #### TOTPAR ####
@@ -12,30 +12,33 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
 
-
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
+order.df <- function(pairwise){
+  for (i in 1:nrow(pairwise)){
+    if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
+      auxt = pairwise[i,"t2"]
+      pairwise[i,"t2"] = pairwise[i,"t1"]
+      pairwise[i,"t1"] = auxt
     
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
+      auxtid = pairwise[i,"tid2"]
+      pairwise[i,"tid2"] = pairwise[i,"tid1"]
+      pairwise[i,"tid1"] = auxtid
     
-    auxn = pairwise[i,"n2"]
-    pairwise[i,"n2"] = pairwise[i,"n1"]
-    pairwise[i,"n1"] = auxn
+      auxn = pairwise[i,"n2"]
+      pairwise[i,"n2"] = pairwise[i,"n1"]
+      pairwise[i,"n1"] = auxn
     
-    auxmean = pairwise[i,"mean2"]
-    pairwise[i,"mean2"] = pairwise[i,"mean1"]
-    pairwise[i,"mean1"] = auxmean
+      auxmean = pairwise[i,"mean2"]
+      pairwise[i,"mean2"] = pairwise[i,"mean1"]
+      pairwise[i,"mean1"] = auxmean
     
-    auxsd = pairwise[i,"sd2"]
-    pairwise[i,"sd2"] = pairwise[i,"sd1"]
-    pairwise[i,"sd1"] = auxsd
+      auxsd = pairwise[i,"sd2"]
+      pairwise[i,"sd2"] = pairwise[i,"sd1"]
+      pairwise[i,"sd1"] = auxsd
+    }
   }
+  return(pairwise)
 }
+pairwise = order.df(pairwise)
 
 pairwise = pairwise %>% select(study, t1, t2, n1, mean1, sd1, n2, mean2, sd2)
 
@@ -289,7 +292,6 @@ baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>%
   mutate(rate=c.events/c.total) %>%
   summarise(median=median(rate,na.rm = T)) %>% as.numeric()
 
-
 measure <- "OR"
 name <- "Rescue.csv"
 name.grade <- "grade_Rescue.csv"
@@ -303,6 +305,4 @@ grade <- write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist
 
 get.network.pdf(pairwise, measure, folder, "Rescue_network")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade)
-
-
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, baseline)
