@@ -1,5 +1,5 @@
-wd <- "/home/antonio/pain_MA"
-setwd(wd)
+# wd <- "/home/antonio/pain_MA"
+# setwd(wd)
 source("functions_MA.R")
 
 #### TOTPAR ####
@@ -55,15 +55,15 @@ measure <- "MD"
 name <- "TOTPAR.csv"
 name.grade <- "grade_TOTPAR.csv"
 folder <- "TOTPAR"
-type.filter <- "Frequentist.random.DL"
+type.filter <- "Frequentist.fixed"
 
 list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
 
-grade <- write.estimates.csv(list.estimates.turnerless, folder,name,filter.type = "Frequentist.random.DL")
+grade <- write.estimates.csv(list.estimates.turnerless, folder,name,filter.type = type.filter)
 
 get.network.pdf(pairwise, measure, folder, "TOTPAR_network")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade)
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.filter)
 
 #### SPID ####
 
@@ -114,16 +114,15 @@ measure <- "MD"
 name <- "SPID.csv"
 name.grade <- "grade_SPID.csv"
 folder <- "SPID"
-type.filter <- "Frequentist.random.DL"
 
 list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
-grade <- write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
+grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "SPID_network")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade)
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.filter)
 
 #### Pain relief ####
 
@@ -175,16 +174,15 @@ measure <- "MD"
 name <- "Pain_relief.csv"
 name.grade <- "grade_Pain_relief.csv"
 folder <- "Pain_relief"
-type.filter <- "Frequentist.random.DL"
 
 list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder,c(-10,10),c(-10,10))
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
-grade <- write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
+grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "Pain_relief_network")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade)
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade,filter=type.filter)
 
 #### Global ####
 
@@ -236,15 +234,14 @@ measure <- "MD"
 name <- "Global.csv"
 name.grade <- "grade_Global.csv"
 folder <- "Global"
-type.filter <- "Frequentist.random.DL"
 
 list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder,c(-10,10),c(-10,10))
 
-grade <- write.estimates.csv(list.estimates.turnerless, folder,name,filter.type = "Frequentist.random.DL")
+grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "Global_network")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade)
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.filter)
 
 
 #### Rescue ####
@@ -296,13 +293,12 @@ measure <- "OR"
 name <- "Rescue.csv"
 name.grade <- "grade_Rescue.csv"
 folder <- "Rescue"
-type.filter <- "Frequentist.random.DL"
 
 list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
-grade <- write.estimates.csv(list.estimates.turnerless, folder,name,"Frequentist.random.DL")
+grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "Rescue_network")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, baseline)
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, baseline,filter=type.filter)

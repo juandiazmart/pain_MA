@@ -444,7 +444,7 @@ get.RD2 <-function(t1,t2, column1, column2, baseline){
   return(dfout)
 }
 
-get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0){
+get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0,filter){
   
   if (measure=="MD") {
     contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
@@ -452,13 +452,13 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0){
     contrast_df=pairwise(list(t1,t2), event = list(e.events,c.events), n = list(e.total,c.total),studlab = study, data = pairwise, sm = measure) 
   }
 
-  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
+  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T)
   split=netsplit(network)
   
   pathname <- paste0(folder,"/output/", gsub(".{4}$", "", name),"_netsplit",".pdf")
   pdf(pathname, width = 9, height = 18)
   
-  forest(split)
+  forest(split,pooled = ifelse(filter=="Frequentist.random.DL","random","fixed"))
   dev.off()
   
   if (measure=="MD") {
@@ -472,7 +472,12 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0){
   }
   
   
-  random=split$random[,c(1,2,4,5)]
+  if (filter=="Frequentist.random.DL") {
+    random=split$random[,c(1,2,4,5)]
+  } else {
+    random=split$fixed[,c(1,2,4,5)]
+  }
+  
   random$t1 <- str_split_fixed(random$comparison, ":", 2)[,1]
   random$t2 <- str_split_fixed(random$comparison, ":", 2)[,2]
   random= random %>% rename(relative_nma = TE, relative_nma_lower = lower, relative_nma_upper = upper) %>%
@@ -502,8 +507,13 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0){
     #random = left_join(random, cross.RDout, by= c("t1" = "t1", "t2" = "t2"))
   }
   
+  if (filter=="Frequentist.random.DL") {
+    indirect=split$indirect.random[,c(1,2,4,5)]
+  } else {
+    indirect=split$indirect.fixed[,c(1,2,4,5)]
+  }
   
-  indirect=split$indirect.random[,c(1,2,4,5)]
+  
   indirect$t1 <- str_split_fixed(indirect$comparison, ":", 2)[,1]
   indirect$t2 <- str_split_fixed(indirect$comparison, ":", 2)[,2]
   indirect = indirect %>% rename(relative_indirect = TE, relative_indirect_lower = lower, relative_indirect_upper = upper) %>%
@@ -535,7 +545,7 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0){
     
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper,
                                -absolute_nma,-absolute_nma_lower,-absolute_nma_upper), exp) %>% 
-      write_csv(paste0(folder,"/output/", name))
+      relocate(starts_with("absolute_nma"),.after = relative_nma_upper) %>% write_csv(paste0(folder,"/output/", name))
   } else {
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper), exp) %>% 
       write_csv(paste0(folder,"/output/", name))
@@ -558,7 +568,7 @@ get.network.pdf <- function(pairwise, measure, folder, name){
     contrast_df=pairwise(list(t1,t2), event = list(e.events,c.events), n = list(e.total,c.total),studlab = study, data = pairwise, sm = measure) 
   }
   
-  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T,comb.fixed = F)
+  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T)
   netgraph(network,multiarm = F)
   dev.off()
 }
