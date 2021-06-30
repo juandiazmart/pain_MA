@@ -4,7 +4,7 @@ source("functions_MA.R")
 
 #### TOTPAR ####
 
-df=read_excel("ADP outcomes revised.xlsx",sheet = "TOTPAR 6h")
+df=read_excel("ADP outcomes revised 2.xlsx",sheet = "TOTPAR 6h")
 df %<>% mutate(studlab=paste0(firstauthor,"_",refid)) %>% rename(mean=`converted_central tendency`,sd=converted_variability)
 
 pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = studlab, data = df, sm = "MD")
@@ -67,7 +67,7 @@ out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.f
 
 #### SPID ####
 
-df=read_excel("ADP outcomes revised.xlsx",sheet = "SPID 6h")
+df=read_excel("ADP outcomes revised 2.xlsx",sheet = "SPID 6h")
 df %<>% mutate(studlab=paste0(firstauthor,"_",refid)) %>% rename(mean=`central tendency`,sd=converted_variability)
 
 pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = studlab, data = df, sm = "MD")
@@ -126,7 +126,7 @@ out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.f
 
 #### Pain relief ####
 
-df=read_excel("ADP outcomes revised.xlsx",sheet = "Pain relief 6h",na=c("","NR"))
+df=read_excel("ADP outcomes revised 2.xlsx",sheet = "Pain relief 6h",na=c("","NR"))
 df %<>% mutate(studlab=paste0(firstauthor,"_",refid),sampleSize=if_else(is.na(sampleSize),50,sampleSize)) %>% 
   rename(mean=`central tendency`,sd=variability)
 
@@ -186,7 +186,7 @@ out <- get.grade.csv(pairwise, measure, folder, name.grade, grade,filter=type.fi
 
 #### Global ####
 
-df=read_excel("ADP outcomes revised.xlsx",sheet = "Global 6h")
+df=read_excel("ADP outcomes revised 2.xlsx",sheet = "Global 6h")
 df %<>% mutate(studlab=paste0(firstauthor,"_",refid)) %>% rename(mean=`converted_central tendency`,sd=converted_variability)
 
 pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = studlab, data = df, sm = "MD")
@@ -246,7 +246,7 @@ out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.f
 
 #### Rescue ####
 
-df=read_excel("ADP outcomes revised.xlsx",sheet = "Rescue analgesia 6h",na=c("","NR"))
+df=read_excel("ADP outcomes revised 2.xlsx",sheet = "Rescue analgesia 6h",na=c("","NR"))
 df %<>% filter(!is.na(responder)) %>% mutate(studlab=paste0(firstauthor,"_",refid)) %>% 
   group_by(studlab,intervention_1,intervention_2) %>% summarise(responder=sum(responder),sample=sum(sample)) %>% 
   ungroup() %>% mutate(responder=round(responder,0))

@@ -545,7 +545,11 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0,f
     
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper,
                                -absolute_nma,-absolute_nma_lower,-absolute_nma_upper), exp) %>% 
-      relocate(starts_with("absolute_nma"),.after = relative_nma_upper) %>% write_csv(paste0(folder,"/output/", name))
+      relocate(starts_with("absolute_nma"),.after = relative_nma_upper) %>% 
+      mutate(absolute_indirect=if_else(t2=="Placebo",-1*1000*(baseline-((relative_indirect*baseline)/(1-baseline+relative_indirect*baseline))),absolute_nma),
+             absolute_indirect_lower=if_else(t2=="Placebo",-1*1000*(baseline-((relative_indirect_lower*baseline)/(1-baseline+relative_indirect_lower*baseline))),absolute_nma_lower),
+             absolute_indirect_upper=if_else(t2=="Placebo",-1*1000*(baseline-((relative_indirect_upper*baseline)/(1-baseline+relative_indirect_upper*baseline))),absolute_nma_upper)) %>% 
+      write_csv(paste0(folder,"/output/", name))
   } else {
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper), exp) %>% 
       write_csv(paste0(folder,"/output/", name))
