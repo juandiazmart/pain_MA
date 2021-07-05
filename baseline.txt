@@ -1,0 +1,17 @@
+TOTPAR 4.1
+SPID 0.345
+Pain_relief 0.62
+Global 0.69
+Rescue 0.803225806451613
+AE_drowsiness 0.0333333333333333
+AE_nausea_vom 0.0844444444444444
+AE_headache 0.052027027027027
+AE_dizziness 0.037037037037037
+AE_vision 0
+AE_dyspepsia 0
+AE_dysphagia 0
+AE_diarrhea 0
+AE_abdominal_pain 0
+AE_mood 0
+AE_constipation 0.00909090909090909
+AE_syncope 0
