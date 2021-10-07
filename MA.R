@@ -65,6 +65,8 @@ grade <- write.estimates.csv(list.estimates.turnerless, folder,name,filter.type 
 
 get.network.pdf(pairwise, measure, folder, "TOTPAR_network")
 
+get.pscore(pairwise, measure, folder,name,type.filter)
+
 out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.filter)
 
 #### SPID ####
@@ -125,6 +127,8 @@ list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "SPID_network")
+
+get.pscore(pairwise, measure, folder,name,type.filter)
 
 out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.filter)
 
@@ -188,6 +192,8 @@ grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "Pain_relief_network")
 
+get.pscore(pairwise, measure, folder,name,type.filter)
+
 out <- get.grade.csv(pairwise, measure, folder, name.grade, grade,filter=type.filter)
 
 #### Global ####
@@ -248,6 +254,8 @@ list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "Global_network")
+
+get.pscore(pairwise, measure, folder,name,type.filter)
 
 out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, filter=type.filter)
 
@@ -310,6 +318,8 @@ list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
 get.network.pdf(pairwise, measure, folder, "Rescue_network")
+
+get.pscore(pairwise, measure, folder,name,type.filter,"good")
 
 out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, baseline,filter=type.filter)
 
