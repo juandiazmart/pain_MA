@@ -601,3 +601,26 @@ write.estimates.csv <- function(list.estimates ,folder,name, filter.type="Turner
   rows.estimates %<>% filter(type==filter.type)
   return(rows.estimates)
 }
+
+get.pscore <- function(pairwise, measure, folder, name,type.filter="Frequentist.fixed",small.values="bad"){
+  
+  #pathname <- paste0(folder,"/output/", gsub(".{4}$", "", name),".pdf")
+  
+  if (measure=="MD") {
+    contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
+  } else {
+    contrast_df=pairwise(list(t1,t2), event = list(e.events,c.events), n = list(e.total,c.total),studlab = study, data = pairwise, sm = measure) 
+  }
+  
+  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T)
+  score=netrank(network, small.values = small.values)
+  
+  if (type.filter=="Frequentist.fixed") {
+    score$Pscore.fixed %>% as_tibble(rownames = "intervention") %>% rename(pscore=value) %>% 
+      arrange(desc(pscore)) %>% write_csv(paste0(folder,"/output/pscore_", name))
+  } else { 
+    score$Pscore.random %>% as_tibble(rownames = "intervention") %>% rename(pscore=value) %>% 
+      arrange(desc(pscore)) %>% write_csv(paste0(folder,"/output/pscore_", name))
+  }
+  
+}
