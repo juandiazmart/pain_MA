@@ -241,7 +241,7 @@ getestimates.turnerless <- function(data, TP, TP1, baseline, measure, name.pdf,f
       yrange <- c(-7 - nrow(effsize), 1)
       forest.default(effsize$yi, vi = effsize$vi, refline = 0,
                      rows = seq(-2, -length(effsize$yi) - 1, by = -1),width=0,
-                     alim = c(-2.5,1),
+                     alim = c(-2.5,2.5),
                      xlim = c(-10,10),
                      ylim = yrange, top=2, steps=5, level=95,
                      xlab="Odds ratio", slab = effsize[,"study"],efac=1, pch=15,cex=1.5,cex.lab=1.5,
@@ -546,9 +546,23 @@ get.grade.csv <- function(pairwise, measure, folder, name, grade, baseline = 0,f
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper,
                                -absolute_nma,-absolute_nma_lower,-absolute_nma_upper), exp) %>% 
       relocate(starts_with("absolute_nma"),.after = relative_nma_upper) %>% 
-      mutate(absolute_indirect=if_else(t2=="Placebo",-1*1000*(baseline-((relative_indirect*baseline)/(1-baseline+relative_indirect*baseline))),absolute_nma),
-             absolute_indirect_lower=if_else(t2=="Placebo",-1*1000*(baseline-((relative_indirect_lower*baseline)/(1-baseline+relative_indirect_lower*baseline))),absolute_nma_lower),
-             absolute_indirect_upper=if_else(t2=="Placebo",-1*1000*(baseline-((relative_indirect_upper*baseline)/(1-baseline+relative_indirect_upper*baseline))),absolute_nma_upper)) %>% 
+      mutate(
+        absolute_indirect = case_when(
+          relative_nma==relative_indirect ~ absolute_nma,
+          t2=="Placebo"     ~ -1*1000*(baseline-((relative_indirect*baseline)/(1-baseline+relative_indirect*baseline))),
+          TRUE                      ~ NA_real_
+        ),
+        absolute_indirect_lower = case_when(
+          relative_nma==relative_indirect ~ absolute_nma_lower,
+          t2=="Placebo"     ~ -1*1000*(baseline-((relative_indirect_lower*baseline)/(1-baseline+relative_indirect_lower*baseline))),
+          TRUE                      ~ NA_real_
+        ),
+        absolute_indirect_upper = case_when(
+          relative_nma==relative_indirect ~ absolute_nma_upper,
+          t2=="Placebo"     ~ -1*1000*(baseline-((relative_indirect_upper*baseline)/(1-baseline+relative_indirect_upper*baseline))),
+          TRUE                      ~ NA_real_
+        )
+      ) %>% 
       write_csv(paste0(folder,"/output/", name))
   } else {
     outbase %>% mutate_at(vars(-t1, -t2,-absolute_direct,-absolute_direct_lower,-absolute_direct_upper), exp) %>% 
@@ -586,4 +600,27 @@ write.estimates.csv <- function(list.estimates ,folder,name, filter.type="Turner
   }
   rows.estimates %<>% filter(type==filter.type)
   return(rows.estimates)
+}
+
+get.pscore <- function(pairwise, measure, folder, name,type.filter="Frequentist.fixed",small.values="bad"){
+  
+  #pathname <- paste0(folder,"/output/", gsub(".{4}$", "", name),".pdf")
+  
+  if (measure=="MD") {
+    contrast_df=pairwise(list(t1,t2), mean = list(mean1,mean2), n = list(n1,n2),sd=list(sd1,sd2),studlab = study, data = pairwise, sm = measure)
+  } else {
+    contrast_df=pairwise(list(t1,t2), event = list(e.events,c.events), n = list(e.total,c.total),studlab = study, data = pairwise, sm = measure) 
+  }
+  
+  network=netmeta(contrast_df,reference.group = "Placebo",details.chkmultiarm = T)
+  score=netrank(network, small.values = small.values)
+  
+  if (type.filter=="Frequentist.fixed") {
+    score$Pscore.fixed %>% as_tibble(rownames = "intervention") %>% rename(pscore=value) %>% 
+      arrange(desc(pscore)) %>% write_csv(paste0(folder,"/output/pscore_", name))
+  } else { 
+    score$Pscore.random %>% as_tibble(rownames = "intervention") %>% rename(pscore=value) %>% 
+      arrange(desc(pscore)) %>% write_csv(paste0(folder,"/output/pscore_", name))
+  }
+  
 }
