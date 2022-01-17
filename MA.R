@@ -1,6 +1,7 @@
+library(readxl)
 # wd <- "/home/antonio/pain_MA"
 # setwd(wd)
-source("functions_MA2.R")
+source("functions_MA.R")
 #### TOTPAR ####
 
 df=read_excel("ADP outcomes revised 2.xlsx",sheet = "TOTPAR 6h")
@@ -11,41 +12,11 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
 
-order.df <- function(pairwise){
-  for (i in 1:nrow(pairwise)){
-    if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-      auxt = pairwise[i,"t2"]
-      pairwise[i,"t2"] = pairwise[i,"t1"]
-      pairwise[i,"t1"] = auxt
-    
-      auxtid = pairwise[i,"tid2"]
-      pairwise[i,"tid2"] = pairwise[i,"tid1"]
-      pairwise[i,"tid1"] = auxtid
-    
-      auxn = pairwise[i,"n2"]
-      pairwise[i,"n2"] = pairwise[i,"n1"]
-      pairwise[i,"n1"] = auxn
-    
-      auxmean = pairwise[i,"mean2"]
-      pairwise[i,"mean2"] = pairwise[i,"mean1"]
-      pairwise[i,"mean1"] = auxmean
-    
-      auxsd = pairwise[i,"sd2"]
-      pairwise[i,"sd2"] = pairwise[i,"sd1"]
-      pairwise[i,"sd1"] = auxsd
-    }
-  }
-  return(pairwise)
-}
 pairwise = order.df(pairwise)
 
 pairwise = pairwise %>% select(study, t1, t2, n1, mean1, sd1, n2, mean2, sd2)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   summarise(median=median(mean2)) %>% as.numeric()
@@ -59,7 +30,7 @@ type.filter <- "Frequentist.fixed"
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = F)
 
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,filter.type = type.filter)
 
@@ -79,37 +50,11 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"n2"]
-    pairwise[i,"n2"] = pairwise[i,"n1"]
-    pairwise[i,"n1"] = auxn
-    
-    auxmean = pairwise[i,"mean2"]
-    pairwise[i,"mean2"] = pairwise[i,"mean1"]
-    pairwise[i,"mean1"] = auxmean
-    
-    auxsd = pairwise[i,"sd2"]
-    pairwise[i,"sd2"] = pairwise[i,"sd1"]
-    pairwise[i,"sd1"] = auxsd
-  }
-}
+pairwise = order.df(pairwise)
 
 pairwise = pairwise %>% select(study, t1, t2, n1, mean1, sd1, n2, mean2, sd2)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   summarise(median=median(mean2)) %>% as.numeric()
@@ -121,7 +66,7 @@ folder <- "SPID"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
@@ -143,37 +88,11 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"n2"]
-    pairwise[i,"n2"] = pairwise[i,"n1"]
-    pairwise[i,"n1"] = auxn
-    
-    auxmean = pairwise[i,"mean2"]
-    pairwise[i,"mean2"] = pairwise[i,"mean1"]
-    pairwise[i,"mean1"] = auxmean
-    
-    auxsd = pairwise[i,"sd2"]
-    pairwise[i,"sd2"] = pairwise[i,"sd1"]
-    pairwise[i,"sd1"] = auxsd
-  }
-}
+pairwise = order.df(pairwise)
 
 pairwise = pairwise %>% select(study, t1, t2, n1, mean1, sd1, n2, mean2, sd2)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   summarise(median=median(mean2)) %>% as.numeric()
@@ -185,7 +104,7 @@ folder <- "Pain_relief"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder,c(-10,10),c(-10,10))
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder,c(-10,10),c(-10,10))
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
@@ -206,38 +125,11 @@ pairwise=pairwise(intervention_1, mean = mean, n = sampleSize,sd=sd,studlab = st
 pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=intervention_21,tid2=intervention_22) %>% 
   select(study,t1,tid1,t2,tid2,n1,mean1,sd1,n2,mean2,sd2)
 
-
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"n2"]
-    pairwise[i,"n2"] = pairwise[i,"n1"]
-    pairwise[i,"n1"] = auxn
-    
-    auxmean = pairwise[i,"mean2"]
-    pairwise[i,"mean2"] = pairwise[i,"mean1"]
-    pairwise[i,"mean1"] = auxmean
-    
-    auxsd = pairwise[i,"sd2"]
-    pairwise[i,"sd2"] = pairwise[i,"sd1"]
-    pairwise[i,"sd1"] = auxsd
-  }
-}
+pairwise = order.df(pairwise)
 
 pairwise = pairwise %>% select(study, t1, t2, n1, mean1, sd1, n2, mean2, sd2)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   summarise(median=median(mean2)) %>% as.numeric()
@@ -249,7 +141,7 @@ folder <- "Global"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder,c(-10,10),c(-10,10))
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder,c(-10,10),c(-10,10))
 
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
 
@@ -273,33 +165,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -312,7 +182,7 @@ folder <- "Rescue"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 #list.estimates <- getestimates(pairwise, TP, TP1, baseline, measure, name,folder)
 
 grade <- write.estimates.csv(list.estimates.turnerless, folder,name,type.filter)
@@ -321,7 +191,7 @@ get.network.pdf(pairwise, measure, folder, "Rescue_network")
 
 get.pscore(pairwise, measure, folder,name,type.filter,"good")
 
-out <- get.grade.csv(pairwise, measure, folder, name.grade, grade, baseline,filter=type.filter)
+out <- get.grade.csv(pairwise, measure, folder, name.grade, grade,filter=type.filter, baseline)
 
 #### AE (Drowsiness) ####
 
@@ -334,33 +204,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -372,7 +220,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -388,33 +236,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -426,7 +252,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -441,33 +267,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -479,7 +283,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -494,33 +298,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -532,7 +314,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -547,33 +329,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -585,7 +345,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -600,33 +360,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -638,7 +376,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -653,33 +391,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -691,7 +407,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -706,33 +422,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -744,7 +438,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -759,33 +453,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -797,7 +469,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -812,33 +484,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -850,7 +500,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -865,33 +515,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -903,7 +531,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
@@ -918,33 +546,11 @@ pairwise %<>% as_tibble() %>% rename(t1=treat1,t2=treat2,study=studlab,tid1=inte
                                      e.events=event1,c.events=event2,e.total=n1,c.total=n2) %>% 
   select(study,t1,tid1,t2,tid2,e.total,e.events,c.total,c.events)
 
-for (i in 1:nrow(pairwise)){
-  if ((pairwise[i,"t1"] == "Placebo") | (as.numeric(pairwise[i,"tid1"]) > as.numeric(pairwise[i, "tid2"]))){
-    auxt = pairwise[i,"t2"]
-    pairwise[i,"t2"] = pairwise[i,"t1"]
-    pairwise[i,"t1"] = auxt
-    
-    auxtid = pairwise[i,"tid2"]
-    pairwise[i,"tid2"] = pairwise[i,"tid1"]
-    pairwise[i,"tid1"] = auxtid
-    
-    auxn = pairwise[i,"c.total"]
-    pairwise[i,"c.total"] = pairwise[i,"e.total"]
-    pairwise[i,"e.total"] = auxn
-    
-    auxmean = pairwise[i,"c.events"]
-    pairwise[i,"c.events"] = pairwise[i,"e.events"]
-    pairwise[i,"e.events"] = auxmean
-  }
-}
+pairwise = order.df2(pairwise)
 
 pairwise = pairwise %>% select(study,t1,t2,e.total,e.events,c.total,c.events)
 
 ####
-
-TP <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "placebo / control")
-
-TP1 <- TurnerEtAlPrior("signs / symptoms reflecting continuation / end of condition", "pharma", "pharma")
 
 baseline=pairwise %>% filter(t1=="Placebo" | t2=="Placebo") %>% 
   mutate(rate=c.events/c.total) %>%
@@ -956,7 +562,7 @@ folder <- "AE"
 
 write(paste(gsub(".{4}$", "", name),baseline),file="baseline.txt",append = T)
 
-list.estimates.turnerless <- getestimates.turnerless(pairwise, TP, TP1, baseline, measure, name,folder)
+list.estimates.turnerless <- getestimates.turnerless(pairwise, baseline, measure, name,folder)
 
 write.estimates.csv(list.estimates.turnerless, folder,name,type.filter) %>% 
   write_csv(file = paste0(folder,"/output/", name))
